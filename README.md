@@ -1,3 +1,5 @@
+Any and all issues (although not favored) would be welcomed
+
 Disclaimer: You'll most likely break your head over the render queue cause nothings consistant
 
 Tested in 2018/2019/2020 LTS versions of Unity
