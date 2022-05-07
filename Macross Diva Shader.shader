@@ -1,6 +1,4 @@
 Shader "MCRS/Diva/Opaque"{
-	//not (entirely) intended for vrchat so have fun if there's any errors as I don't play the game LOL
-	
 	//thank mrpolarbear for the edgeline help
 	//Update 1.1: hookers added
 	//Update 1.2: Corrected error related to outline using MainTex as mask by accident
