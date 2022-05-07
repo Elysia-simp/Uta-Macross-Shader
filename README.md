@@ -1,6 +1,7 @@
 Disclaimer: You'll most likely break your head over the render queue cause nothings consistant
 
 Tested in 2018/2019/2020 LTS versions of Unity
+
 I don't play VRChat so I can't garentee this'll work well on VRChat
 
 The only things you need are Diffuse, Alpha Mask, And the Rimlight Sampler map
