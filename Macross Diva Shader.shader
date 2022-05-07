@@ -31,8 +31,8 @@ Shader "MCRS/Diva/Opaque"{
         pass{
 
             CGPROGRAM
-                #pragma vertex vertexFunc
-                #pragma fragment fragmentFunc
+            #pragma vertex vertexFunc
+            #pragma fragment fragmentFunc
                 
             #include "UnityCG.cginc"
 
@@ -85,8 +85,8 @@ Shader "MCRS/Diva/Opaque"{
 
             fixed4 fragmentFunc(v2f IN) : SV_Target{
                 //Unlit Texture stuff nothing special
-			fixed4 pixelColor = tex2D(_MainTexture, IN.uv);
-			pixelColor.a = tex2D(_AlphaMask, IN.uv) * _Alpha;
+		fixed4 pixelColor = tex2D(_MainTexture, IN.uv);
+		pixelColor.a = tex2D(_AlphaMask, IN.uv) * _Alpha;
                 
                 if(_UseColor == 1)
 				{
@@ -106,20 +106,20 @@ Shader "MCRS/Diva/Opaque"{
                     pixelColor.a = tex2D(_AlphaMask, IN.uv) * _Alpha;
                 }
 				
-				//subtex
-				float3 Rimmask = tex2D(_RimLightSampler, IN.uv); //works like a regular tex
+		//subtex
+		float3 Rimmask = tex2D(_RimLightSampler, IN.uv); //works like a regular tex
+		
+		//Rimlighting
 				
-				//Rimlighting
-				
-                 float3 normalDir = IN.normal;
+                float3 normalDir = IN.normal;
 				 
-                 float3 viewDir = normalize( _WorldSpaceCameraPos.xyz - IN.posWorld.xyz);
-                 float rimUV = 1.0 - saturate (dot(viewDir, normalDir));
+                float3 viewDir = normalize( _WorldSpaceCameraPos.xyz - IN.posWorld.xyz);
+                float rimUV = 1.0 - saturate (dot(viewDir, normalDir));
 				 
-				 float3 Rim = tex2D(_RimLightSampler, rimUV).g; //instead of using IN.uv offsetted by rimUV
+		float3 Rim = tex2D(_RimLightSampler, rimUV).g; //subtex except G is influenced by rimUV
 				 
-				//a massive fucking headache
-                 float3 rimLight =  pow(rimUV, _FresnelPower) * _FresnelColor * Rimmask.r * Rim  ;
+		//a massive fucking headache
+                float3 rimLight =  pow(rimUV, _FresnelPower) * _FresnelColor * Rimmask.r * Rim  ;
             
                 return float4(pixelColor + rimLight, pixelColor.a);
             }
