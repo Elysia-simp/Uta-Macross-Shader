@@ -10,10 +10,10 @@ Shader "MCRS/Diva/Opaque"{
 	
     Properties {
 		_MainTexture("Texture", 2D) = "white" {}
-        _AlphaMask ("Alpha (A)", 2D) = "white" {}
-        _Alpha ("Alpha", range(0,1)) = 1
-        [Toggle] _AlphaMainTex("Alpha in Texture?", Float) = 0
-        [Toggle] _UseColor("Ignore Light?", Float) = 0
+        	_AlphaMask ("Alpha (A)", 2D) = "white" {}
+        	_Alpha ("Alpha", range(0,1)) = 1
+        	[Toggle] _AlphaMainTex("Alpha in Texture?", Float) = 0
+        	[Toggle] _UseColor("Ignore Light?", Float) = 0
 		_Color ("Main Color", Color) = (1,1,1,1)
 		_FresnelColor ("Fresnel Color", Color) = (1,1,1,1)
 		_FresnelPower ("Fresnel Power", Float) = 1
@@ -70,37 +70,39 @@ Shader "MCRS/Diva/Opaque"{
             };
 
             v2f vertexFunc(appdata IN){
-				v2f OUT = (v2f)0;
-				OUT.uv = IN.uv;
-				OUT.color = IN.color;
-				// even more fresnel stuff
-				OUT.posWorld = mul(unity_ObjectToWorld, IN.vertex);
+		v2f OUT = (v2f)0;
+		OUT.uv = IN.uv;
+		OUT.color = IN.color;
+		// even more fresnel stuff
+		OUT.posWorld = mul(unity_ObjectToWorld, IN.vertex);
                 OUT.normal = normalize( mul ( float4(IN.normal, 0.0), unity_WorldToObject).xyz);
                 IN.texcoord = TRANSFORM_TEX(OUT.texcoord, _MainTexture);
                 UNITY_TRANSFER_FOG(OUT, OUT.pos);
                 OUT.position = UnityObjectToClipPos(IN.vertex);
 
-				return OUT;
+		return OUT;
 			}
 
             fixed4 fragmentFunc(v2f IN) : SV_Target{
                 //Unlit Texture stuff nothing special
-				fixed4 pixelColor = tex2D(_MainTexture, IN.uv);
-				pixelColor.a = tex2D(_AlphaMask, IN.uv) * _Alpha;
+			fixed4 pixelColor = tex2D(_MainTexture, IN.uv);
+			pixelColor.a = tex2D(_AlphaMask, IN.uv) * _Alpha;
                 
                 if(_UseColor == 1)
 				{
-                    pixelColor.rgb *= _Color.rgb;
+                    	pixelColor.rgb *= _Color.rgb;
                 }
-				else{
+		else
+		{
                     pixelColor.rgb *= unity_LightColor[0].rgb;
                 }
 				
-				if(_AlphaMainTex == 1){
+		if(_AlphaMainTex == 1)
+		{
 					
                     pixelColor.a = tex2D(_MainTexture, IN.uv).a * _Alpha;
                 }
-				else{
+		else{
                     pixelColor.a = tex2D(_AlphaMask, IN.uv) * _Alpha;
                 }
 				
@@ -162,22 +164,19 @@ Shader "MCRS/Diva/Opaque"{
             v2f vert (appdata IN)
             {
                 v2f OUT = (v2f)0;
-				OUT.uv = IN.uv;
-				OUT.color = IN.color;
-				// adjusted for Asset ripper Models If you want to use FBX scale your model by 100 in any 3d program
+		OUT.uv = IN.uv;
+		OUT.color = IN.color;
+		// adjusted for Asset ripper Models If you want to use FBX scale your model by 100 in any 3d program
                 IN.vertex.xyz += IN.normal.xyz * _OutlineSize * IN.color * 0.015;
                 //outline related things
-				OUT.position = UnityObjectToClipPos(IN.vertex);
-				//outlinemask
-
-                
-
-                
+		OUT.position = UnityObjectToClipPos(IN.vertex);
+		
                 return OUT;
             }
             
             fixed4 frag (v2f IN) : SV_Target
             {
+	    //Take texture and darken them slightly
                 fixed4 pixelColor = tex2D(_MainTexture, IN.uv) * _OutlineColor * float4(0.8,0.8,0.8,1.0);
                 return pixelColor;
                 
