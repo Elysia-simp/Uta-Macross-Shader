@@ -16,3 +16,11 @@ Alternatively AlphaMask can be edited into diffuse via Photoshop (or whatever yo
 Mikumo Hair Shader is already mostly handled by the shader just edit the alpha slider to your liking
 
 <img width="925" alt="Example" src="https://user-images.githubusercontent.com/105132829/167274881-cc3776fe-716f-4135-bfbf-554ba6e6983a.PNG">
+
+If you plan on recreating this effect on your own model or sumn
+
+you'll need vertex colors for edgescale
+
+<img width="562" alt="Vert Colors" src="https://user-images.githubusercontent.com/105132829/167278445-b8ac6af8-2ae0-4638-b4c2-dddcff305acf.PNG">
+
+Nothing special black = 0 and White = 1 go crazy
