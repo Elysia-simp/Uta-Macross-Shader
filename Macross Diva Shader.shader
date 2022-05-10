@@ -7,15 +7,16 @@ Shader "MCRS/Diva/Opaque"{
 	//Update 1.5: Rimlight Sampler G map actually works (don't judge me) also outlines are darker by default now
 	
     Properties {
-		_MainTexture("Texture", 2D) = "white" {}
-        	_AlphaMask ("Alpha (A)", 2D) = "white" {}
-        	_Alpha ("Alpha", range(0,1)) = 1
-        	[Toggle] _AlphaMainTex("Alpha in Texture?", Float) = 0
-        	[Toggle] _UseColor("Ignore Light?", Float) = 0
-		_Color ("Main Color", Color) = (1,1,1,1)
-		_FresnelColor ("Fresnel Color", Color) = (1,1,1,1)
-		_FresnelPower ("Fresnel Power", Float) = 1
-		_RimLightSampler ("RimLight Control", 2D) = "white" {}
+	_MainTexture("Texture", 2D) = "white" {}
+        _AlphaMask ("Alpha (A)", 2D) = "white" {}
+        _Alpha ("Alpha", range(0,1)) = 1
+        [Toggle] _AlphaMainTex("Alpha in Texture?", Float) = 0
+        [Toggle] _OutlineIgnoreLight("Should outline ignore the light?", Float) = 0
+        [Toggle] _UseColor("Ignore Light?", Float) = 0
+	_Color ("Main Color", Color) = (1,1,1,1)
+	_FresnelColor ("Fresnel Color", Color) = (1,1,1,1)
+	_FresnelPower ("Fresnel Power", Float) = 1
+	_RimLightSampler ("RimLight Control", 2D) = "white" {}
 	
         _OutlineColor("Outline Color", Color)=(1,1,1,1)
         _OutlineSize("OutlineSize", Range(0.0,2))=1
@@ -23,8 +24,8 @@ Shader "MCRS/Diva/Opaque"{
 
 	Subshader{
         Tags {"Queue"="Geometry" "RenderType"="Geometry" "LightMode" = "Vertex"}
-		ZWrite On
-		Blend SrcAlpha OneMinusSrcAlpha
+	ZWrite On
+	Blend SrcAlpha OneMinusSrcAlpha
         //Fresnel + Main Tex
         pass{
 
@@ -54,7 +55,7 @@ Shader "MCRS/Diva/Opaque"{
                 float4 color : COLOR;
                 float3 normal : NORMAL;
                 float4 posWorld : TEXCOORD1;
-				float2 texcoord : TEXCOORD2;
+		float2 texcoord : TEXCOORD2;
             };
 			
             struct v2f
@@ -64,7 +65,7 @@ Shader "MCRS/Diva/Opaque"{
                 half3 normal : NORMAL;
                 float4 posWorld : TEXCOORD1;
                 float4 color : COLOR;
-				half2 texcoord : TEXCOORD2;
+		half2 texcoord : TEXCOORD2;
             };
 
             v2f vertexFunc(appdata IN){
@@ -86,22 +87,22 @@ Shader "MCRS/Diva/Opaque"{
 		fixed4 pixelColor = tex2D(_MainTexture, IN.uv);
 		pixelColor.a = tex2D(_AlphaMask, IN.uv) * _Alpha;
                 
-                if(_UseColor == 1)
-				{
-                    	pixelColor.rgb *= _Color.rgb;
+		if(_UseColor == 1)
+		{
+			pixelColor.rgb *= _Color.rgb;
                 }
 		else
 		{
-                    pixelColor.rgb *= unity_LightColor[0].rgb;
+			pixelColor.rgb *= unity_LightColor[0].rgb;
                 }
 				
 		if(_AlphaMainTex == 1)
 		{
 					
-                    pixelColor.a = tex2D(_MainTexture, IN.uv).a * _Alpha;
+			pixelColor.a = tex2D(_MainTexture, IN.uv).a * _Alpha;
                 }
 		else{
-                    pixelColor.a = tex2D(_AlphaMask, IN.uv) * _Alpha;
+			pixelColor.a = tex2D(_AlphaMask, IN.uv) * _Alpha;
                 }
 				
 		//subtex
@@ -109,11 +110,11 @@ Shader "MCRS/Diva/Opaque"{
 		
 		//Rimlighting
 				
-                float3 normalDir = IN.normal;
-				 
-                float3 viewDir = normalize( _WorldSpaceCameraPos.xyz - IN.posWorld.xyz);
-                float rimUV = 1.0 - saturate (dot(viewDir, normalDir));
-				 
+		float3 normalDir = IN.normal;
+		 
+		float3 viewDir = normalize( _WorldSpaceCameraPos.xyz - IN.posWorld.xyz);
+		float rimUV = 1.0 - saturate (dot(viewDir, normalDir));
+		 
 		float3 Rim = tex2D(_RimLightSampler, rimUV).g; //subtex except G is influenced by rimUV
 				 
 		//a massive fucking headache
@@ -142,6 +143,7 @@ Shader "MCRS/Diva/Opaque"{
             sampler2D _MainTexture;
             sampler2D _OutlineMask;
             fixed4 _Color;
+			float _OutlineIgnoreLight;
             
             struct appdata
             {
@@ -161,21 +163,28 @@ Shader "MCRS/Diva/Opaque"{
             
             v2f vert (appdata IN)
             {
-                v2f OUT = (v2f)0;
-		OUT.uv = IN.uv;
-		OUT.color = IN.color;
-		// adjusted for Asset ripper Models If you want to use FBX scale your model by 100 in any 3d program
-                IN.vertex.xyz += IN.normal.xyz * _OutlineSize * IN.color * 0.015;
-                //outline related things
-		OUT.position = UnityObjectToClipPos(IN.vertex);
+		v2f OUT = (v2f)0;
+			OUT.uv = IN.uv;
+			OUT.color = IN.color;
+			// adjusted for Asset ripper Models If you want to use FBX scale your model by 100 in any 3d program
+			IN.vertex.xyz += IN.normal.xyz * _OutlineSize * IN.color * 0.015;
+			OUT.position = UnityObjectToClipPos(IN.vertex);
 		
-                return OUT;
+            	return OUT;
             }
             
             fixed4 frag (v2f IN) : SV_Target
             {
-	    //Take texture and darken them slightly
+		//Take texture and darken them slightly
                 fixed4 pixelColor = tex2D(_MainTexture, IN.uv) * _OutlineColor * float4(0.8,0.8,0.8,1.0);
+		if(_OutlineIgnoreLight == 1) // channeling my inner copy and paste with this one
+		{
+			pixelColor.rgb *= _Color.rgb;
+		}
+		else
+		{
+			pixelColor.rgb *= unity_LightColor[0].rgb;
+                }
                 return pixelColor;
                 
             }
