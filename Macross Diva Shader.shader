@@ -8,6 +8,7 @@ Shader "MCRS/Diva/Opaque"{
 	//Update 1.4: Toggle for alpha being in Texture
 	//Update 1.5: Rimlight Sampler G map actually works (don't judge me) and makes outline darker by default
 	//Update 1.6: Culling modes has been added
+	//Update 1.7: Shitty outline toggle
 	
     Properties {
 	_MainTexture("Texture", 2D) = "white" {}
@@ -16,6 +17,7 @@ Shader "MCRS/Diva/Opaque"{
         [Toggle] _AlphaMainTex("Alpha in Texture?", Float) = 0
         [Toggle] _OutlineIgnoreLight("Should outline ignore the light?", Float) = 0
         [Toggle] _UseColor("Ignore Light?", Float) = 0
+        [Toggle] _OutlineToggle("Outline toggle", Float) = 1
 	_Color ("Main Color", Color) = (1,1,1,1)
 	_FresnelColor ("Fresnel Color", Color) = (1,1,1,1)
 	_FresnelPower ("Fresnel Power", Float) = 1
@@ -26,6 +28,7 @@ Shader "MCRS/Diva/Opaque"{
     }
 
 	Subshader{
+	Name "Outline"
         Tags {"Queue"="Geometry" "RenderType"="Geometry" "LightMode" = "Vertex"}
 	Cull [_CullMode]
 	Blend SrcAlpha OneMinusSrcAlpha
@@ -58,7 +61,7 @@ Shader "MCRS/Diva/Opaque"{
                 float4 color : COLOR;
                 float3 normal : NORMAL;
                 float4 posWorld : TEXCOORD1;
-				float2 texcoord : TEXCOORD2;
+		float2 texcoord : TEXCOORD2;
             };
 			
             struct v2f
@@ -68,7 +71,7 @@ Shader "MCRS/Diva/Opaque"{
                 half3 normal : NORMAL;
                 float4 posWorld : TEXCOORD1;
                 float4 color : COLOR;
-				half2 texcoord : TEXCOORD2;
+		half2 texcoord : TEXCOORD2;
             };
 
             v2f vertexFunc(appdata IN){
@@ -82,42 +85,42 @@ Shader "MCRS/Diva/Opaque"{
                 UNITY_TRANSFER_FOG(OUT, OUT.pos);
                 OUT.position = UnityObjectToClipPos(IN.vertex);
 
-				return OUT;
+		return OUT;
 			}
 
             fixed4 fragmentFunc(v2f IN) : SV_Target{
                 //Unlit Texture stuff nothing special
-				fixed4 pixelColor = tex2D(_MainTexture, IN.uv);
-				pixelColor.a = tex2D(_AlphaMask, IN.uv) * _Alpha;
+		fixed4 pixelColor = tex2D(_MainTexture, IN.uv);
+		pixelColor.a = tex2D(_AlphaMask, IN.uv) * _Alpha;
                 
                 if(_UseColor == 1)
-				{
+		{
                     pixelColor.rgb *= _Color.rgb;
                 }
-				else{
+		else{
                     pixelColor.rgb *= unity_LightColor[0].rgb;
                 }
 				
-				if(_AlphaMainTex == 1){
+		if(_AlphaMainTex == 1){
 					
-                    pixelColor.a = tex2D(_MainTexture, IN.uv).a * _Alpha;
+                 pixelColor.a = tex2D(_MainTexture, IN.uv).a * _Alpha;
                 }
 				else{
-                    pixelColor.a = tex2D(_AlphaMask, IN.uv) * _Alpha;
+                 pixelColor.a = tex2D(_AlphaMask, IN.uv) * _Alpha;
                 }
 				
-				//subtex
-				float3 Rimmask = tex2D(_RimLightSampler, IN.uv);
+		//subtex
+		float3 Rimmask = tex2D(_RimLightSampler, IN.uv);
 				
-				//Rimlighting
+		//Rimlighting
 				
-                 float3 normalDir = IN.normal;
+               float3 normalDir = IN.normal;
+		 
+               float3 viewDir = normalize( _WorldSpaceCameraPos.xyz - IN.posWorld.xyz);
+               float rimUV = 1.0 - saturate ( dot(viewDir, normalDir) );
+		float3 Rim = tex2D(_RimLightSampler, rimUV).g; // rim uv affecting the g map rather than the regular uv
 				 
-                 float3 viewDir = normalize( _WorldSpaceCameraPos.xyz - IN.posWorld.xyz);
-                 float rimUV = 1.0 - saturate ( dot(viewDir, normalDir) );
-				 float3 Rim = tex2D(_RimLightSampler, rimUV).g;
-				 
-				//a massive fucking headache
+		//a massive fucking headache
                  float3 rimLight =  pow(rimUV, _FresnelPower) * _FresnelColor * Rimmask.r * Rim  ;
             
                 return float4(pixelColor + rimLight, pixelColor.a);
@@ -128,9 +131,9 @@ Shader "MCRS/Diva/Opaque"{
         Pass
         {
             // Stencil {
-			// 	Ref 1
-			// 	Comp NotEqual
-			// }
+	    // 	Ref 1
+	    // 	Comp NotEqual
+	    // }
 
             Cull Front
             CGPROGRAM
@@ -138,12 +141,13 @@ Shader "MCRS/Diva/Opaque"{
             #pragma fragment frag
             #include "UnityCG.cginc"
             
-	fixed4 _OutlineColor;
-	float _OutlineSize;
-	sampler2D _MainTexture;
-	sampler2D _OutlineMask;
-	fixed4 _Color;
-	float _OutlineIgnoreLight;
+            fixed4 _OutlineColor;
+            float _OutlineSize;
+            sampler2D _MainTexture;
+            sampler2D _OutlineMask;
+            fixed4 _Color;
+	    float _OutlineIgnoreLight;
+	    float _OutlineToggle;
             
             struct appdata
             {
@@ -167,7 +171,14 @@ Shader "MCRS/Diva/Opaque"{
 		OUT.uv = IN.uv;
 		OUT.color = IN.color;
 		// adjusted for Asset ripper Models If you want to use FBX scale your model by 100 in any 3d program
-                IN.vertex.xyz += IN.normal.xyz * _OutlineSize * IN.color * 0.015;
+		if(_OutlineToggle == 1)
+		{
+			IN.vertex.xyz += IN.normal.xyz * _OutlineSize * IN.color * 0.015;
+		}
+		else
+		{
+			IN.vertex = IN.vertex;
+		}
                 //outline related things
 		OUT.position = UnityObjectToClipPos(IN.vertex);
 		//outlinemask
@@ -180,15 +191,23 @@ Shader "MCRS/Diva/Opaque"{
             
             fixed4 frag (v2f IN) : SV_Target
             {
-		fixed4 pixelColor = tex2D(_MainTexture, IN.uv) * _OutlineColor * float4(0.8,0.8,0.8,1.0);
-		if(_OutlineIgnoreLight == 1) // channeling my inner copy and paste with this one
+				fixed4 pixelColor = tex2D(_MainTexture, IN.uv) * _OutlineColor * float4(0.8,0.8,0.8,1.0);
+				if(_OutlineIgnoreLight == 1) // channeling my inner copy and paste with this one
+				{
+					pixelColor.rgb *= _Color.rgb;
+				}
+				else
+				{
+					pixelColor.rgb *= unity_LightColor[0].rgb;
+                }
+		if(_OutlineToggle == 1)
 		{
-			pixelColor.rgb *= _Color.rgb;
+			pixelColor.a = 1;
 		}
 		else
 		{
-			pixelColor.rgb *= unity_LightColor[0].rgb;
-                }
+			pixelColor.a = 0;
+		}
                 return pixelColor;
             }
             ENDCG
