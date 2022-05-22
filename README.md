@@ -25,3 +25,7 @@ you'll need vertex colors for edgescale
 <img width="562" alt="Vert Colors" src="https://user-images.githubusercontent.com/105132829/167278445-b8ac6af8-2ae0-4638-b4c2-dddcff305acf.PNG">
 
 Nothing special black = 0 and White = 1 go crazy
+
+Valkyrie and stage shader explanations included in the future
+
+Use those ones at your own discression
