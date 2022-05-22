@@ -2,26 +2,26 @@ Shader "MCRS/Diva/Opaque_High"
 {
     Properties
     {
-		_MainTex("Texture", 2D) = "white" {}
+	_MainTex("Texture", 2D) = "white" {}
         _AlphaTex ("Alpha (A)", 2D) = "white" {}
         _Alpha ("Alpha", range(0,1)) = 1
         [Toggle] _AlphaMainTex("Alpha in Texture?", Float) = 0
         [Toggle] _UseColor("Ignore Light?", Float) = 0
         [Toggle] _OutlineToggle("Outline toggle", Float) = 1
-		_Color ("Main Color", Color) = (1,1,1,1)
-		[Toggle] _RimLightToggle("Rim toggle", Float) = 1
-		_RimColor ("RimLight Color", Color) = (1,1,1,1)
-		_RimLightPower("RimLight Power", Float) = 1
-		_RimLightSampler ("RimLight Control", 2D) = "white" {}
-		[Enum(UnityEngine.Rendering.CullMode)] _CullMode("Cull Mode", Int) = 0	
+	_Color ("Main Color", Color) = (1,1,1,1)
+	[Toggle] _RimLightToggle("Rim toggle", Float) = 1
+	_RimColor ("RimLight Color", Color) = (1,1,1,1)
+	_RimLightPower("RimLight Power", Float) = 1
+	_RimLightSampler ("RimLight Control", 2D) = "white" {}
+	[Enum(UnityEngine.Rendering.CullMode)] _CullMode("Cull Mode", Int) = 0	
         _OutlineColor("Outline Color", Color)=(1,1,1,1)
         _OutlineSize("OutlineSize", Range(0.0,2))=1
     }
     SubShader
     {
-		Tags {"Queue"="Geometry" "RenderType"="Geometry" "LightMode" = "Vertex"}
-		Cull [_CullMode]
-		Blend SrcAlpha OneMinusSrcAlpha
+	Tags {"Queue"="Geometry" "RenderType"="Geometry" "LightMode" = "Vertex"}
+	Cull [_CullMode]
+	Blend SrcAlpha OneMinusSrcAlpha
         Pass
         {
 	Zwrite On
