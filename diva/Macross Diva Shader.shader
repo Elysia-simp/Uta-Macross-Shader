@@ -87,7 +87,7 @@ Shader "MCRS/Diva/Opaque_High"
 		
 		//subtex calls
 		
-		fixed4 Rim = tex2D(_RimLightSampler, rimUV).g * _RimLightToggle * _RimColor;
+		fixed4 Rim = tex2D(_RimLightSampler, rimUV).g * _RimLightToggle * _RimColor * _RimLightPower;
 		fixed4 Rimmask = tex2D(_RimLightSampler, i.uv).r;
 		
 		// so i don't need to make so many return calls like before
