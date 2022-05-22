@@ -67,7 +67,7 @@ Shader "MCRS/Diva/Opaque_High"
                 v2f o = (v2f)0;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-		o.normal = v.normal;
+		o.normal = normalize( mul ( float4(v.normal, 0.0), unity_WorldToObject).xyz);
 		o.posWorld = mul(unity_ObjectToWorld, v.vertex);
                 UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
