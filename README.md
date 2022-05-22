@@ -8,6 +8,8 @@ Tested in 2018/2019/2020 LTS versions of Unity
 
 Should work in VRChat (Not quest compatible don't expect that any time soon)
 
+___anything from here onwards is outdated!!___
+
 The only things you need are Diffuse, Alpha Mask, And the Rimlight Sampler map
 
 <img width="348" alt="Shader things" src="https://user-images.githubusercontent.com/105132829/167274643-4d568950-69ec-4b31-8a98-e9aab427128d.PNG">
