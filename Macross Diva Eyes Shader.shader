@@ -1,17 +1,19 @@
-Shader "MCRS/Diva/Eyes"
+Shader "MCRS/Diva/Trans_Eye"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-		_Color ("Main Color", Color) = (1,1,1,1)
-		_Scroll("Scroll", Range(-1, 1)) = 0.0
-		_AlphaMask ("Alpha (A)", 2D) = "white" {}
-		[Toggle] _UseColor("Ignore Light?", Float) = 0
+	_Color ("Main Color", Color) = (1,1,1,1)
+	_Alpha ("Alpha", range(0,1)) = 1
+	_Scroll("Scroll", Range(-1, 1)) = 0.0
+	_AlphaMask ("Alpha (A)", 2D) = "white" {}
+	[Toggle] _UseColor("Ignore Light?", Float) = 0
     }
     SubShader
     {
         Tags {"Queue"="Transparent" "RenderType"="Geometry" "LightMode" = "Vertex"}
 		Blend SrcAlpha OneMinusSrcAlpha
+		ZWrite On
         Pass
         {
             CGPROGRAM
@@ -39,14 +41,15 @@ Shader "MCRS/Diva/Eyes"
             sampler2D _AlphaMask;
             float4 _MainTex_ST;
             float4 _AlphaMask_ST;
-			float4 _Color;
-			float _UseColor;
-			float _Scroll;
+	    float4 _Color;
+	    float _UseColor;
+	    float _Scroll;
+	    float _Alpha;
 			
             v2f vert (appdata v)
             {
                 v2f o;
-				v.uv.x += _Scroll;
+		v.uv.x += _Scroll;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 UNITY_TRANSFER_FOG(o,o.vertex);
@@ -57,7 +60,7 @@ Shader "MCRS/Diva/Eyes"
             {
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
-				col.a = tex2D(_AlphaMask, i.uv);
+				col.a = tex2D(_AlphaMask, i.uv) * _Alpha;
 				
 				if(_UseColor == 1)
 				{
@@ -67,6 +70,7 @@ Shader "MCRS/Diva/Eyes"
 				{
                    col.rgb *= unity_LightColor[0].rgb;
 				}
+				
 
                 // apply fog
                 UNITY_APPLY_FOG(i.fogCoord, col);
