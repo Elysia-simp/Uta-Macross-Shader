@@ -5,8 +5,10 @@ Shader "MCRS/Diva/Opaque_High"
 		_MainTex("Texture", 2D) = "white" {}
 		_AlphaTex ("Alpha (A)", 2D) = "white" {}
 		_Alpha ("Alpha", range(0,1)) = 1
+		[Toggle] _AlphaMainTex("Alpha in Texture?", Float) = 0
 		[Toggle] _UseColor("Ignore Light?", Float) = 0
 		[Toggle] _OutlineToggle("Outline toggle", Float) = 1
+		[Toggle] _DistanceScale("Should outline not scale by camera distance?", Float) = 0
 		_Color ("Main Color", Color) = (1,1,1,1)
 		[Toggle] _RimLightToggle("Rim toggle", Float) = 1
 		[Toggle] _TangentToggle("(MGF ONLY) Tangent Toggle", Float) = 1
@@ -35,32 +37,33 @@ Shader "MCRS/Diva/Opaque_High"
 
           struct appdata
           {
-	  	float4 vertex : POSITION;
-		half3 normal : NORMAL;
-		float2 uv : TEXCOORD0;
+              float4 vertex : POSITION;
+			  half3 normal : NORMAL;
+              float2 uv : TEXCOORD0;
+			  float4 tangent : TANGENT;
           };
 
           struct v2f
           {
-		float2 uv : TEXCOORD0;
-		UNITY_FOG_COORDS(1)
-		float4 vertex : SV_POSITION;
-		half3 normal : NORMAL;
-		float4 posWorld : TEXCOORD1;
+              float2 uv : TEXCOORD0;
+              UNITY_FOG_COORDS(1)
+              float4 vertex : SV_POSITION;
+			  half3 normal : NORMAL;
+			  float4 posWorld : TEXCOORD1;
           };
 
           float4 _Color;
           float4 _RimColor;
           float _RimLightToggle;
-	  float _RimLightPower;
-	  sampler2D _MainTex;
+		  float _RimLightPower;
+		  sampler2D _MainTex;
           sampler2D _AlphaTex;
           sampler2D _RimLightSampler;
           float4 _MainTex_ST;
           float4 _AlphaTex_ST;
           float4 _RimLightSampler_ST;
-	  float _Alpha;
-	  float _UseColor;
+		  float _Alpha;
+		  float _UseColor;
 
             v2f vert (appdata v)
             {
@@ -83,7 +86,7 @@ Shader "MCRS/Diva/Opaque_High"
 		
 		float3 normalDir = i.normal;
 		float3 viewDir = normalize( _WorldSpaceCameraPos.xyz - i.posWorld.xyz);
-		float rimUV = 1.0 - saturate ( dot(viewDir, normalDir) ) * _RimLightPower;
+		float rimUV = saturate(pow(1.0 - dot(viewDir, normalDir), _RimLightPower));
 		
 		//subtex calls
 		
@@ -126,6 +129,7 @@ Shader "MCRS/Diva/Opaque_High"
 			float _OutlineIgnoreLight;
 			float _OutlineToggle;
 			float _UseColor;
+			float _DistanceScale;
 			
 			struct appdata
 			{
@@ -148,7 +152,14 @@ Shader "MCRS/Diva/Opaque_High"
                 o.uv = v.uv;
 				o.color = v.color;
 				//once again adjusted for asset ripper models and models scaled by 100
-				v.vertex.xyz += v.normal.xyz * _OutlineSize * v.color * _OutlineToggle * 0.015;
+				if(_DistanceScale == 1)
+				{
+					v.vertex.xyz += v.normal.xyz * _OutlineSize * v.color * _OutlineToggle * 0.015;
+				}
+				else
+				{
+					v.vertex.xyz += v.normal.xyz * _OutlineSize * v.color * _OutlineToggle * 0.015 * (length(ObjSpaceViewDir(v.vertex)) * 0.155);
+				}
 				o.position = UnityObjectToClipPos(v.vertex);
 				UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
