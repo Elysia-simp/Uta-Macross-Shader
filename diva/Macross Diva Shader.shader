@@ -8,7 +8,6 @@ Shader "MCRS/Diva/Opaque_High"
 		[Toggle] _AlphaMainTex("Alpha in Texture?", Float) = 0
 		[Toggle] _UseColor("Ignore Light?", Float) = 0
 		[Toggle] _OutlineToggle("Outline toggle", Float) = 1
-		[Toggle] _DistanceScale("Should outline not scale by camera distance?", Float) = 0
 		_Color ("Main Color", Color) = (1,1,1,1)
 		[Toggle] _RimLightToggle("Rim toggle", Float) = 1
 		[Toggle] _TangentToggle("(MGF ONLY) Tangent Toggle", Float) = 1
@@ -55,23 +54,23 @@ Shader "MCRS/Diva/Opaque_High"
           float4 _Color;
           float4 _RimColor;
           float _RimLightToggle;
-		  float _RimLightPower;
-		  sampler2D _MainTex;
+	  float _RimLightPower;
+	  sampler2D _MainTex;
           sampler2D _AlphaTex;
           sampler2D _RimLightSampler;
           float4 _MainTex_ST;
           float4 _AlphaTex_ST;
           float4 _RimLightSampler_ST;
-		  float _Alpha;
-		  float _UseColor;
+	  float _Alpha;
+	  float _UseColor;
 
             v2f vert (appdata v)
             {
                 v2f o = (v2f)0;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-				o.normal = normalize( mul ( float4(v.normal, 0.0), unity_WorldToObject).xyz);
-				o.posWorld = mul(unity_ObjectToWorld, v.vertex);
+		o.normal = normalize( mul ( float4(v.normal, 0.0), unity_WorldToObject).xyz);
+		o.posWorld = mul(unity_ObjectToWorld, v.vertex);
                 UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
             }
@@ -152,14 +151,7 @@ Shader "MCRS/Diva/Opaque_High"
                 o.uv = v.uv;
 				o.color = v.color;
 				//once again adjusted for asset ripper models and models scaled by 100
-				if(_DistanceScale == 1)
-				{
-					v.vertex.xyz += v.normal.xyz * _OutlineSize * v.color * _OutlineToggle * 0.015;
-				}
-				else
-				{
-					v.vertex.xyz += v.normal.xyz * _OutlineSize * v.color * _OutlineToggle * 0.015 * (length(ObjSpaceViewDir(v.vertex)) * 0.155);
-				}
+				v.vertex.xyz += v.normal.xyz * _OutlineSize * v.color * _OutlineToggle * 0.015;
 				o.position = UnityObjectToClipPos(v.vertex);
 				UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
