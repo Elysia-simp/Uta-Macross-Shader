@@ -1,84 +1,77 @@
-﻿Shader "MCRS/Diva/Mikumo Hair"
-// Update 1.2: Blackjack added
+Shader "MCRS/Diva/Mikumo Hair"
 {
-	Properties
-	{
-		_MainTexture("Texture", 2D) = "white" {}
-		_Color ("Main Color", Color) = (1,1,1,1)
-		[Toggle] _UseColor("Ignore Light?", Float) = 0
-		_Alpha ("Alpha", range(0,1)) = 1
-	}
-	SubShader
-	{
-		Tags {"Queue"="Geometry" "RenderType"="Geometry" "LightMode" = "Vertex"}
-		
-		ZWrite On
-		Blend SrcAlpha OneMinusSrcAlpha
-		
-		Pass
-		{
-			CGPROGRAM
-			
-			// unity just requires this
-			
-			#pragma vertex vertexFunc
-			#pragma fragment fragmentFunc
+    Properties
+    {
+        _MainTex("Texture", 2D) = "white" {}
+        _Color ("Main Color", Color) = (1,1,1,1)
+        [Toggle] _UseColor("Ignore Light?", Float) = 0
+    }
+    SubShader
+    {
+        Tags { "Queue"="Geometry+10"  "RenderType"="Opaque" "LightMode"="VERTEX" }
+        Blend SrcAlpha One
+        Cull Back
+        Pass
+        {
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            // make fog work
+            #pragma multi_compile_fog
 
-			
-			
-			#include "UnityCG.cginc"
-			
-			struct appdata{
-				float4 vertex : POSITION;
-                half4 color : COLOR;
-				float2 uv : TEXCOORD;
-				
-			};
-			
-			struct v2f {
-				float4 position : SV_POSITION;
-                half4 color    : COLOR;
-				float2 uv : TEXCOORD;
-			};
-			
-			
-			// main tex stuff
-			fixed4 _Color;
-			sampler2D _MainTexture;
-			float4 _MainTexture_ST;
-			float _Alpha;
-			float _UseColor;
-			
-			v2f vertexFunc(appdata IN)
-			{
-				v2f OUT = (v2f)0;
-				OUT.position = UnityObjectToClipPos(IN.vertex);
-				// this just makes it so when the "game" is playing it moves up static cause uta doesnt really make this move at different speeds much
-				OUT.uv=(IN.uv*_MainTexture_ST.xy)+float2(0, -0.1)*_Time.y;
-				//vertex color call don't make the same mistake I did and do OUT.color.rgb; for some reason
-				OUT.color = IN.color;
+            #include "UnityCG.cginc"
 
-				
-			return OUT;
-			}
-			
-            fixed4 fragmentFunc(v2f IN) : SV_Target
-			{
-				//Unlit Texture stuff nothing special
-				fixed4 pixelColor = tex2D(_MainTexture, IN.uv) + (IN.color - 0.6);
-                if(_UseColor == 1){
-                    pixelColor.rgb *= _Color.rgb;
-                }else{
-                    pixelColor.rgb *= unity_LightColor[0];
+            struct appdata
+            {
+                float4 vertex : POSITION;
+                float4 color : COLOR;
+                float2 uv : TEXCOORD0;
+            };
+
+            struct v2f
+            {
+                float2 uv : TEXCOORD0;
+                float4 color : COLOR;
+                UNITY_FOG_COORDS(1)
+                float4 vertex : SV_POSITION;
+            };
+
+            sampler2D _MainTex;
+            float4 _Color;
+            float _Alpha;
+            float4 _MainTex_ST;
+            float _UseColor;
+
+            v2f vert (appdata v)
+            {
+                v2f o;
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.color = v.color;
+                o.uv =(v.uv*_MainTex_ST.xy) + float2(0, -0.1) * _Time.y;
+                UNITY_TRANSFER_FOG(o,o.vertex);
+                return o;
+            }
+
+            fixed4 frag (v2f i) : SV_Target
+            {
+                // sample the texture
+                fixed4 col = tex2D(_MainTex, i.uv);
+                col.a = i.color * 0.4;
+                
+                if(_UseColor == 1)
+                {
+                    col.rgb *= _Color;
                 }
-    			//Vertex alpha
-				pixelColor.a = IN.color * _Alpha;
-				
-				return pixelColor;
-			}
-			ENDCG
+                else
+                {
+                    col.rgb *= unity_LightColor[0];
+                }
 
-
-		}
-	}
+                // apply fog
+                UNITY_APPLY_FOG(i.fogCoord, col);
+                return col;
+            }
+            ENDCG
+        }
+    }
 }
