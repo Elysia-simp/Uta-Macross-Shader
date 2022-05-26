@@ -5,8 +5,8 @@ Shader "MCRS/Stage/Opaque"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-		_Color ("Main Color", Color) = (1,1,1,1)
-		[Toggle] _UseColor("Ignore Light?", Float) = 0
+        _Color ("Main Color", Color) = (1,1,1,1)
+        [Toggle] _UseColor("Ignore Light?", Float) = 0
     }
     SubShader
     {
@@ -17,7 +17,7 @@ Shader "MCRS/Stage/Opaque"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-			#pragma multi_compile_fwdbase
+            #pragma multi_compile_fwdbase
             // make fog work
             #pragma multi_compile_fog
 
@@ -38,8 +38,8 @@ Shader "MCRS/Stage/Opaque"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
-			float4 _Color;
-			float _UseColor;
+            float4 _Color;
+            float _UseColor;
 
             v2f vert (appdata v)
             {
@@ -54,17 +54,17 @@ Shader "MCRS/Stage/Opaque"
             {
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
-				if(_UseColor == 1)
-				{
+                if(_UseColor == 1)
+                {
                    col.rgb *= _Color.rgb;
-				}
-				else
-				{
+                }
+                else
+                {
                    col.rgb *= unity_LightColor[0].rgb;
-				}
-				#ifdef VERTEXLIGHT_ON
-				// Calculate lights
-				#endif
+                }
+                #ifdef VERTEXLIGHT_ON
+                // Calculate lights
+                #endif
                 // apply fog
                 UNITY_APPLY_FOG(i.fogCoord, col);
                 return col;
