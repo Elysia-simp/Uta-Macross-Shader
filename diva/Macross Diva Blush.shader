@@ -3,15 +3,15 @@ Shader "MCRS/Diva/Blush"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-		_Color ("Main Color", Color) = (1,1,1,1)
-		_AlphaMask ("Alpha (A)", 2D) = "white" {}
-		_Alpha ("Alpha", Range(0, 1)) = 0
-		[Toggle] _UseColor("Ignore Light?", Float) = 0
+        _Color ("Main Color", Color) = (1,1,1,1)
+        _AlphaTex ("Alpha (A)", 2D) = "white" {}
+        _Alpha ("Alpha", Range(0, 1)) = 0
+        [Toggle] _UseColor("Ignore Light?", Float) = 0
     }
     SubShader
     {
         Tags {"Queue"="Transparent" "RenderType"="Geometry" "LightMode" = "Vertex"}
-		Blend SrcAlpha OneMinusSrcAlpha
+        Blend SrcAlpha OneMinusSrcAlpha
 
         Pass
         {
@@ -39,11 +39,10 @@ Shader "MCRS/Diva/Blush"
             sampler2D _MainTex;
             float4 _MainTex_ST;
             float4 _Color;
-            sampler2D _AlphaMask;
-            float4 _AlphaMask_ST;
-			float _Alpha;
-			float _UseColor;
-		
+            sampler2D _AlphaTex;
+            float4 _AlphaTex_ST;
+            float _Alpha;
+            float _UseColor;
 
             v2f vert (appdata v)
             {
@@ -58,15 +57,15 @@ Shader "MCRS/Diva/Blush"
             {
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
-				col.a = tex2D(_AlphaMask, i.uv) * _Alpha;
-				if(_UseColor == 1)
-				{
+                col.a = tex2D(_AlphaTex, i.uv) * _Alpha;
+                if(_UseColor == 1)
+                {
                    col.rgb *= _Color.rgb;
-				}
-				else
-				{
+                }
+                else
+                {
                    col.rgb *= unity_LightColor[0].rgb;
-				}				
+                }				
                 // apply fog
                 UNITY_APPLY_FOG(i.fogCoord, col);
                 return col;
